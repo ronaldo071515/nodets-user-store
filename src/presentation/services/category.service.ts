@@ -1,5 +1,5 @@
 import { CategoryModel } from '../../data';
-import { CreateCategoryDto, CustomError, UserEntity } from '../../domain';
+import { CreateCategoryDto, CustomError, UserEntity, PaginationDto } from '../../domain';
 import { CategoryEntity } from '../../domain/entities/category.entity';
 
 
@@ -34,15 +34,37 @@ export class CategoryService {
         }
     }
 
-    async getCategories() {
+    async getCategories(paginationDto: PaginationDto) {
+
+        const { page, limit } = paginationDto;
 
         try {
-            const categories = await CategoryModel.find();
-            if (!categories) throw CustomError.notFound('Categories not found');
+            // const total = await CategoryModel.countDocuments();
+            // const categories = await CategoryModel.find()
+            //     .skip( (page - 1) * limit)//pagina 1
+            //     .limit( limit );
 
+            const [total, categories] = await Promise.all([
+                CategoryModel.countDocuments(),
+                CategoryModel.find()
+                    .skip( (page - 1) * limit)
+                    .limit( limit )
+            ]);
+
+            if (!categories) throw CustomError.notFound('Categories not found');
             const categoriesEntity = CategoryEntity.fromObject(categories);
 
-            return categoriesEntity
+            const next = limit * page >= total ? null : `/api/categories?page=${ (page + 1) }&limit=${ limit }`;
+            const prev = page - 1 === 0 ? null : `/api/categories?page=${( page -1 )}&limit=${ limit }`;
+
+            return {
+                page: page,
+                limit: limit,
+                total: total,
+                next: next,
+                prev: prev,
+                categories: categoriesEntity
+            }
 
         } catch (error) {
             throw CustomError.internalServer(`${error}`)
