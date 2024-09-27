@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { JwtAdapter } from '../../config';
 import { UserModel } from '../../data';
+import { UserEntity } from '../../domain';
 
 
 export class AuthMiddleware {
@@ -22,7 +23,13 @@ export class AuthMiddleware {
             if(!payload) return res.status(401).json({ error: 'Invalid Token' });
 
             const user = await UserModel.findById( payload.id );
+            if( !user ) return res.status(401).json({ error: 'Invalid Token - user' });
+            
+            //TODO: validar si el usuario está activo isActive
 
+            req.body.user = UserEntity.fromObject(user);//siempre vamos a tener en el body el user
+
+            next();
 
         } catch (error) {
             console.log(error);
