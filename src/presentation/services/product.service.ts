@@ -37,7 +37,8 @@ export class ProductService {
                 ProductModel.find()
                     .skip( (page - 1) * limit)
                     .limit( limit )
-                //TODO: Populate
+                    .populate('user')
+                    .populate('category')
             ]);
 
             if (!products) throw CustomError.notFound('Products not found');
