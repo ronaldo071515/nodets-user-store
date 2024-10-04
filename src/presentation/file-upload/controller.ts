@@ -19,28 +19,20 @@ export class FileUploadController {
     }
 
     uploadFile = (req: Request, res: Response) => {
-
         const type = req.params.type;
-        const validTypes = ['users', 'categories', 'products'];
-
-        if(!validTypes.includes(type)) {
-            return res.status(400).json({error: `Ìnvalid type ${type}, valid ones are ${validTypes}`});
-        }
-
-        if(!req.files || Object.keys(req.files).length === 0) {
-            return res.status(400).json({ error: 'No files were selected' });
-        }
-
-        const file = req.files.file as UploadedFile;
-
+        const file = req.body.files.at(0) as UploadedFile; // recuperamos el archivo que ahora viene es en el body, ya que con el middleware lo mandamos en el body
         this.fileUploadService.uploadSingle( file, `uploads/${ type }` )
             .then( uploaded => res.json(uploaded) )
             .catch(error => this.handleError(error, res));
-
     }
     
     uploadMultipleFiles = (req: Request, res: Response) => {
-        res.json('uploadMultipleFiles');
+        const type = req.params.type;
+        const files = req.body.files as UploadedFile[]; // recuperamos el archivo que ahora viene es en el body, ya que con el middleware lo mandamos en el body
+        this.fileUploadService.uploadMultiple( files, `uploads/${ type }` )
+            .then( uploaded => res.json(uploaded) )
+            .catch(error => this.handleError(error, res));
+
     }
 
 }

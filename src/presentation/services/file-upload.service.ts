@@ -30,6 +30,7 @@ export class FileUploadService {
                 throw CustomError.badRequest(`Invalid file extension: ${ fileExtension }, valid ones: ${ validExtensions }`);
             }
 
+            //TODO: refactorizar esto
             const destination = path.resolve(__dirname, '../../../', folder);
             this.checkFolder(destination);
 
@@ -46,10 +47,17 @@ export class FileUploadService {
     }
 
     async uploadMultiple(
-        file: any[],
+        files: UploadedFile[],
         folder: string = 'uploads',
         validExtensions: string[] = ['png', 'jpg', 'jpeg', 'gif']
     ) {
+
+        // llamamos al metodo uploadSingle por cada archivo que viene en el array
+        const fileNames = await Promise.all(
+            files.map( file => this.uploadSingle(file, folder, validExtensions))//recibimos un array de promesas y retornamos un array de promesas con las respuestas de cada promesa llamando al metodo uploadSingle para subir cada archivo, con el metodo map lo que hacemos es recorrer el array de promesas y llamar al metodo uploadSingle para subir cada archivo
+        );
+
+        return fileNames;
 
     }
 
